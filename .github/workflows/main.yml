@@ -1,5 +1,8 @@
 name: rmd-render
-on: [push]
+on: 
+  push:
+    branches-ignore:
+      - gh-pages
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -7,8 +10,8 @@ jobs:
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
       - uses: r-lib/actions/setup-pandoc@master
-      - name: install packages
-      - run:  |
+      - name: install dependencies
+        run:  |
           set -e
           Rscript -e "pc <- c(yaml::read_yaml("_site.yml")$packages$packages_cran_repo,\
           yaml::read_yaml("_site.yml")$packages$packages_cran_student);\
@@ -17,17 +20,17 @@ jobs:
           install.packages(pc,dep=TRUE);\
           BiocManager::install(bc)"
       - name: render website
-      - run: |
+        run: |
           Rscript -e "rmarkdown::render()"
       - name: get variables
-      - run: |
+        run: |
           url_git=$(git config --get remote.origin.url)
           url_git_short=$(echo $url_git | sed 's/https:\/\///')
           url_repo="https://${{secrets.GH_PAT}}@${url_git_short}"
           path_root=$(pwd)
           path_export=$(grep -E '^output_dir' _site.yml | sed -E 's/^[a-zA-Z0-9_-]+[:][[:space:]]//')
       - name: pull gh-pages, check duplicate folder, copy rendered folder
-      - run: |
+        run: |
           git clone --single-branch --branch gh-pages $url_repo tmprepo
           cd tmprepo
           if [ -d $path_export ]; then
@@ -39,7 +42,7 @@ jobs:
           cp -r $path_export tmprepo/
           cd tmprepo
       - name: create index.md
-      - run: |
+        run: |
           str_user_repo=$(echo $url_git | sed 's/https:\/\/github.com\///' | sed 's/.git//')
           str_user=$(echo "$str_user_repo" | sed 's/\/.*//')
           str_repo=$(echo "$str_user_repo" | sed 's/.*\///')
@@ -50,7 +53,7 @@ jobs:
            printf "<a href='https://${str_user}.github.io/${str_repo}/${i}/'>${i}</a>\n\n" >> index.md
           done
       - name: push to gh-pages
-      - run: |
+        run: |
           git add .
           tm=$(date +%Y%m%d-%H%M%S)
           git commit -m "Updated contents at ${tm}"
