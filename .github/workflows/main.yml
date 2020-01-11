@@ -13,7 +13,7 @@ jobs:
           r-version: '3.6.1'
       - uses: r-lib/actions/setup-pandoc@master
       - name: Install linux dependencies
-      - run: |
+        run: |
           sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
       - name: Check R installation and define variables
         run: |
