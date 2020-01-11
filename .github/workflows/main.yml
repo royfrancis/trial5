@@ -7,20 +7,20 @@ jobs:
   rmd-render-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Define variables
-        run: |
-          echo ::set-env name=path_repo::$(pwd)
-          echo ::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)
-          ls -lh
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
         with:
           r-version: '3.6.1'
       - uses: r-lib/actions/setup-pandoc@master
-      - name: Check R installation and variables
+      - name: Install linux dependencies
+      - run: |
+          sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
+      - name: Check R installation and define variables
         run: |
           Rscript -e "print('R installation works!')"
+          echo ::set-env name=path_repo::$(pwd)
           echo "Path repo: $path_repo"
+          echo ::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)
           echo "Path export: $path_export"
           ls -lh
       - name: Install R dependencies
@@ -30,8 +30,11 @@ jobs:
           Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_student)'
       - name: Render Rmd website
         run: |
-          Rscript -e "rmarkdown::render()"
+          Rscript -e "rmarkdown::render_site()"
           ls -lh
+          cd $path_export
+          ls -lh
+          cd ..
       - name: Pull gh-pages, check duplicate folder, copy rendered folder
         run: |
           git clone --single-branch --branch gh-pages "https://${{ secrets.GH_PAT }}@${GITHUB_REPOSITORY}" tmprepo
@@ -58,10 +61,6 @@ jobs:
       - name: Push to gh-pages
         run: |
           git add .
-          tm=$(date +%Y%m%d-%H%M%S)
-          git commit -m "Updated contents at ${tm}"
+          git commit -m "Updated contents at $(date +%Y%m%d-%H%M%S)"
           git push origin
-          cd ${path_repo}
-          rm -rf tmprepo
-          rm -rf $pathexport
 

@@ -1,3 +1,3 @@
 # Trial 5
 
-![](https://github.com/royfrancis/trial5/workflows/render-rmd/badge.svg)
+[![Build status](https://github.com/royfrancis/trial5/workflows/rmd-render/badge.svg)](https://github.com/royfrancis/trial5/actions?workflow=rmd-render)
