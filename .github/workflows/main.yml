@@ -8,15 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: r-lib/actions/setup-r@master
+        with:
+          r-version: '3.6.1'
+      - uses: r-lib/actions/setup-pandoc@master
+      - name: Install linux dependencies
+        run: |
+          sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
       - name: Define variables
         run: |
           echo "::set-env name=path_repo::$(pwd)"
           echo "::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)"
           echo "::set-env name=repo::$(echo "$GITHUB_REPOSITORY" | sed 's/.*\///')"
-      - name: Script
+      - name: Check R installation and variables
         run: |
-          git config --global user.email "do_not_email@example.com"
-          git config --global user.name "gh_action"
+          Rscript -e "print('R installation works!')"
           echo "Github actor: ${GITHUB_ACTOR}"
           echo "Github repository: ${GITHUB_REPOSITORY}"
           echo "Github repo: ${repo}"
@@ -24,8 +30,17 @@ jobs:
           echo "Path export: ${path_export}"
           echo "Folder contents at $(pwd):"
           ls -lh
-          mkdir $path_export
-          touch ${path_export}/test.txt
+      - name: Install R dependencies
+        run: |
+          Rscript -e "install.packages('yaml')"
+          Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_repo)'
+          Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_student)'
+          Rscript -e 'devtools::install_github("rstudio/fontawesome")'
+      - name: Render site, pull repo, copy folder, create index, push repo
+        run: |
+          git config --global user.email "do_not_email@example.com"
+          git config --global user.name "gh_action"
+          Rscript -e "rmarkdown::render_site()"
           echo "Folder contents at $(pwd):"
           ls -lh
           echo "Folder contents at ${path_repo}/${path_export}:"
