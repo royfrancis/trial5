@@ -10,9 +10,8 @@ jobs:
       - name: Define variables
         run: |
           echo ::set-env name=path_repo::$(pwd)
-          echo ::set-env name=path_root::$(pwd)
-          echo ::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed -E 's/^[a-zA-Z0-9_-]+[:][[:space:]]//')
-          echo ::set-env name=url_repo::$(https://${{ secrets.GH_PAT }}@${GITHUB_REPOSITORY}.git)
+          echo ::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)
+          ls -lh
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
         with:
@@ -21,21 +20,23 @@ jobs:
       - name: Check R installation and variables
         run: |
           Rscript -e "print('R installation works!')"
-          echo "Path root: $path_root"
-          echo "Path root: $path_repo"
-          echo "Path root: $path_export"
+          echo "Path repo: $path_repo"
+          echo "Path export: $path_export"
+          ls -lh
       - name: Install R dependencies
         run: |
           Rscript -e "install.packages('yaml')"
-          Rscript -e "pkg <- yaml::read_yaml('_site.yml')$packages;pc <-c(pkg$packages_cran_repo,pkg$packages_cran_student);bc <-c(pkg$packages_bioc_repo,pkg$packages_bioc_student);print(pc);print(bc);" \
-          install.packages(pc,dep=TRUE);\
-          BiocManager::install(bc)"
+          Rscript -e "install.packages(yaml::read_yaml('_site.yml')$packages$packages_cran_repo)"
+          Rscript -e "install.packages(yaml::read_yaml('_site.yml')$packages$packages_cran_student)"
+          Rscript -e "BiocManager::install(yaml::read_yaml('_site.yml')$packages$packages_bioc_repo)"
+          Rscript -e "BiocManager::install(yaml::read_yaml('_site.yml')$packages$packages_bioc_student)"
       - name: Render Rmd website
         run: |
           Rscript -e "rmarkdown::render()"
+          ls -lh
       - name: Pull gh-pages, check duplicate folder, copy rendered folder
         run: |
-          git clone --single-branch --branch gh-pages $url_repo tmprepo
+          git clone --single-branch --branch gh-pages "https://${{ secrets.GH_PAT }}@${GITHUB_REPOSITORY}" tmprepo
           cd tmprepo
           if [ -d $path_export ]; then
             echo "Directory ${path_export} already exists. Removing the directory."
