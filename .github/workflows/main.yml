@@ -6,41 +6,34 @@ on:
 jobs:
   rmd-render-job:
     runs-on: ubuntu-latest
-    env:
-      token: ${{ secrets.GH_PAT }}
-      url_repo: "https://${token}@${GITHUB_REPOSITORY}.git"
-      path_root: $(pwd)
     steps:
+      - name: Define variables
+        run: |
+          echo ::set-env name=path_repo::$(pwd)
+          echo ::set-env name=path_root::$(pwd)
+          echo ::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed -E 's/^[a-zA-Z0-9_-]+[:][[:space:]]//')
+          echo ::set-env name=url_repo::$(https://${{ secrets.GH_PAT }}@${GITHUB_REPOSITORY}.git)
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
         with:
           r-version: '3.6.1'
       - uses: r-lib/actions/setup-pandoc@master
-      - name: check
+      - name: Check R installation and variables
         run: |
           Rscript -e "print('R installation works!')"
           echo "Path root: $path_root"
-          ls -lh
-      - name: Clone repository
-        run: |
-          git clone --single-branch --branch master $url_repo master
-          cd master
-          path_repo: $(pwd)
-          echo "Path repo: $path_repo"
-          ls -lh
-      - name: install dependencies
+          echo "Path root: $path_repo"
+          echo "Path root: $path_export"
+      - name: Install R dependencies
         run: |
           Rscript -e "install.packages('yaml')"
           Rscript -e "pkg <- yaml::read_yaml('_site.yml')$packages;pc <-c(pkg$packages_cran_repo,pkg$packages_cran_student);bc <-c(pkg$packages_bioc_repo,pkg$packages_bioc_student);print(pc);print(bc);" \
           install.packages(pc,dep=TRUE);\
           BiocManager::install(bc)"
-      - name: render website
+      - name: Render Rmd website
         run: |
           Rscript -e "rmarkdown::render()"
-      - name: get variables
-        run: |
-          path_export=$(grep -E '^output_dir' _site.yml | sed -E 's/^[a-zA-Z0-9_-]+[:][[:space:]]//')
-      - name: pull gh-pages, check duplicate folder, copy rendered folder
+      - name: Pull gh-pages, check duplicate folder, copy rendered folder
         run: |
           git clone --single-branch --branch gh-pages $url_repo tmprepo
           cd tmprepo
@@ -52,7 +45,7 @@ jobs:
           cd ${path_repo}
           cp -r $path_export tmprepo/
           cd tmprepo
-      - name: create index.md
+      - name: Create index.md
         run : |
           str_user_repo=$(echo $url_git | sed 's/https:\/\/github.com\///' | sed 's/.git//')
           str_user=$(echo "$str_user_repo" | sed 's/\/.*//')
@@ -63,7 +56,7 @@ jobs:
           do
            printf "<a href='https://${str_user}.github.io/${str_repo}/${i}/'>${i}</a>\n\n" >> index.md
           done
-      - name: push to gh-pages
+      - name: Push to gh-pages
         run: |
           git add .
           tm=$(date +%Y%m%d-%H%M%S)
@@ -72,3 +65,4 @@ jobs:
           cd ${path_repo}
           rm -rf tmprepo
           rm -rf $pathexport
+
