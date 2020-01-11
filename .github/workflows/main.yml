@@ -8,13 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: r-lib/actions/setup-r@master
-        with:
-          r-version: '3.6.1'
-      - uses: r-lib/actions/setup-pandoc@master
-      - name: Install linux dependencies
-        run: |
-          sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
       - name: Define variables
         run: |
           echo "::set-env name=path_repo::$(pwd)"
@@ -22,30 +15,24 @@ jobs:
           echo "::set-env name=repo::$(echo "$GITHUB_REPOSITORY" | sed 's/.*\///')"
       - name: Check R installation and variables
         run: |
-          Rscript -e "print('R installation works!')"
           echo "Github actor: ${GITHUB_ACTOR}"
           echo "Github repository: ${GITHUB_REPOSITORY}"
           echo "Github repo: ${repo}"
           echo "Path repo: ${path_repo}"
           echo "Path export: ${path_export}"
-          echo "Folder contents:"
+          echo "Folder contents at $(pwd):"
           ls -lh
-      - name: Install R dependencies
-        run: |
-          Rscript -e "install.packages('yaml')"
-          Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_repo)'
-          Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_student)'
-          Rscript -e 'devtools::install_github("rstudio/fontawesome")'
       - name: Render Rmd website
         run: |
-          Rscript -e "rmarkdown::render_site()"
+          mkdir 2001
+          touch 2001/test.txt
+          echo "Folder contents at $(pwd):"
           ls -lh
-          cd $path_export
-          ls -lh
-          cd ..
+          echo "Folder contents at ${path_repo}/${path_export}:"
+          ls -lh ${path_repo}/${path_export}
       - name: Pull gh-pages, check duplicate folder, copy rendered folder
         run: |
-          git clone --single-branch --branch gh-pages "https://${{ secrets.GH_PAT }}@github.com/${GITHUB_REPOSITORY}" tmprepo
+          git clone --single-branch --branch gh-pages "https://${GITHUB_ACTOR}:${{ secrets.GH_PAT }}@github.com/${GITHUB_REPOSITORY}.git" tmprepo
           cd tmprepo
           if [ -d $path_export ]; then
             echo "Directory ${path_export} already exists. Removing the directory."
@@ -55,7 +42,7 @@ jobs:
           cd ${path_repo}
           cp -r $path_export tmprepo/
           cd tmprepo
-          echo "Folder contents:"
+          echo "Folder contents at $(pwd):"
           ls -lh
       - name: Create index.md
         run : |
@@ -65,6 +52,8 @@ jobs:
           do
            printf "<a href='https://${GITHUB_ACTOR}.github.io/${repo}/${i}/'>${i}</a>\n\n" >> index.md
           done
+          echo "Folder contents at $(pwd):"
+          ls -lh
       - name: Push to gh-pages
         run: |
           git add .
