@@ -8,11 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Script
+      - name: Define variables
         run: |
           echo "::set-env name=path_repo::$(pwd)"
           echo "::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)"
           echo "::set-env name=repo::$(echo "$GITHUB_REPOSITORY" | sed 's/.*\///')"
+      - name: Script
+        run: |
           echo "Github actor: ${GITHUB_ACTOR}"
           echo "Github repository: ${GITHUB_REPOSITORY}"
           echo "Github repo: ${repo}"
