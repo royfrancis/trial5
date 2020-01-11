@@ -4,7 +4,7 @@ output_dir: 2001
 uppmax_project: g2019031
 # location options are lund, umea or uppsala
 location: uppsala
-exclude: ["docs","README.md","schedule.csv","LICENSE","LICENSE.md","scripts","slide"]
+exclude: ["docs","README.md","schedule.csv","LICENSE","LICENSE.md","scripts","slide","tmprepo"]
 navbar:
   title: '<img src="assets/logo.svg" id="logo" style="height:30px;margin:0;"/>'
   type: default
