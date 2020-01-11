@@ -35,6 +35,7 @@ jobs:
           Rscript -e "install.packages('yaml')"
           Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_repo)'
           Rscript -e 'install.packages(yaml::read_yaml("_site.yml")$packages$packages_cran_student)'
+          Rscript -e 'devtools::install_github("rstudio/fontawesome")'
       - name: Render Rmd website
         run: |
           Rscript -e "rmarkdown::render_site()"
