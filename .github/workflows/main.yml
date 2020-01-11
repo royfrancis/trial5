@@ -13,14 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
+        with:
+          r-version: '3.6.1'
       - uses: r-lib/actions/setup-pandoc@master
       - name: check
-      - run: |
+        run: |
           Rscript -e "print('R installation works!')"
           echo "Path root: $path_root"
           ls -lh
       - name: Clone repository
-      - run: |
+        run: |
           git clone --single-branch --branch master $url_repo master
           cd master
           path_repo: $(pwd)
@@ -51,7 +53,7 @@ jobs:
           cp -r $path_export tmprepo/
           cd tmprepo
       - name: create index.md
-        run: |
+        run : |
           str_user_repo=$(echo $url_git | sed 's/https:\/\/github.com\///' | sed 's/.git//')
           str_user=$(echo "$str_user_repo" | sed 's/\/.*//')
           str_repo=$(echo "$str_user_repo" | sed 's/.*\///')
