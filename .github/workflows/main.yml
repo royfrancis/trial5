@@ -8,13 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Define variables
+      - name: Script
         run: |
           echo "::set-env name=path_repo::$(pwd)"
           echo "::set-env name=path_export::$(grep -E '^output_dir' _site.yml | sed 's/^output_dir://' | xargs)"
           echo "::set-env name=repo::$(echo "$GITHUB_REPOSITORY" | sed 's/.*\///')"
-      - name: Check R installation and variables
-        run: |
           echo "Github actor: ${GITHUB_ACTOR}"
           echo "Github repository: ${GITHUB_REPOSITORY}"
           echo "Github repo: ${repo}"
@@ -22,16 +20,12 @@ jobs:
           echo "Path export: ${path_export}"
           echo "Folder contents at $(pwd):"
           ls -lh
-      - name: Render Rmd website
-        run: |
-          mkdir 2001
-          touch 2001/test.txt
+          mkdir $path_export
+          touch ${path_export}/test.txt
           echo "Folder contents at $(pwd):"
           ls -lh
           echo "Folder contents at ${path_repo}/${path_export}:"
           ls -lh ${path_repo}/${path_export}
-      - name: Pull gh-pages, check duplicate folder, copy rendered folder
-        run: |
           git clone --single-branch --branch gh-pages "https://${GITHUB_ACTOR}:${{ secrets.GH_PAT }}@github.com/${GITHUB_REPOSITORY}.git" tmprepo
           cd tmprepo
           if [ -d $path_export ]; then
@@ -44,8 +38,6 @@ jobs:
           cd tmprepo
           echo "Folder contents at $(pwd):"
           ls -lh
-      - name: Create index.md
-        run : |
           printf "All current and previous workshop materials are listed below. Numbers denote year and month.\n\n" > index.md
           dirs=$(ls -d */ | sed 's/\///' | tac)
           for i in $dirs
@@ -54,8 +46,6 @@ jobs:
           done
           echo "Folder contents at $(pwd):"
           ls -lh
-      - name: Push to gh-pages
-        run: |
           git add .
           git commit -m "Updated contents at $(date +%Y%m%d-%H%M%S)"
           git push origin
