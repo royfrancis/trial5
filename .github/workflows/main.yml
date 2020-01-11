@@ -22,12 +22,12 @@ jobs:
           echo "Path root: $path_root"
           ls -lh
       - name: Clone repository
-      -run |
-        git clone --single-branch --branch master $url_repo master
-        cd master
-        path_repo: $(pwd)
-        echo "Path repo: $path_repo"
-        ls -lh
+      - run: |
+          git clone --single-branch --branch master $url_repo master
+          cd master
+          path_repo: $(pwd)
+          echo "Path repo: $path_repo"
+          ls -lh
       - name: install dependencies
         run: |
           Rscript -e "install.packages('yaml')"
