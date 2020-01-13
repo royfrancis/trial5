@@ -12,16 +12,19 @@ jobs:
         uses: r-lib/actions/setup-r@master
         with:
           r-version: '3.6.1'
-      - name: Cache linux dependencies
-        id: cache-linux
-        uses: actions/cache@v1
-        with:
-          path: linux
-          key: ${{ runner.os }}-linux
       - name: Install linux dependencies
-      	if: steps.cache-linux.outputs.cache-hit != 'true'
         run: |
           sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
+      - name: Cache R packages
+        id: cache-rp
+        uses: actions/cache@v1
+        with:
+          path: "/home/runner/work/_temp/Library"
+          key: ${{ runner.os }}-cache-rp
+      - name: Install R packages
+      	if: steps.cache-rp.outputs.cache-hit != 'true'
+        run: |
+          Rscript -e "install.packages('devtools')"
       - run: |
           if [[ $(dpkg -l | grep -E '^ii' | grep r-3.6.1) ]]; then
            echo "there are files"
