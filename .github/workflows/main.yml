@@ -24,7 +24,7 @@ jobs:
       - name: Install R packages
         if: steps.cache-rp.outputs.cache-hit != 'true'
         run: |
-          Rscript -e "install.packages('devtools')"
+          Rscript -e "install.packages('devtools','yaml')"
       - run: |
           Rscript -e ".libPaths()"
           ls /home/runner/work/_temp/Library
