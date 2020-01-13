@@ -22,7 +22,7 @@ jobs:
           path: "/home/runner/work/_temp/Library"
           key: ${{ runner.os }}-cache-rp
       - name: Install R packages
-      	if: steps.cache-rp.outputs.cache-hit != 'true'
+        if: steps.cache-rp.outputs.cache-hit != 'true'
         run: |
           Rscript -e "install.packages('devtools')"
       - run: |
