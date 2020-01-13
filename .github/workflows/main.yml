@@ -8,17 +8,20 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - name: Cache r
-        id: cache-r
-        uses: actions/cache@v1
-        with:
-          path: r
-          key: ${{ runner.os }}-r
       - name: Set up R
+        uses: r-lib/actions/setup-r@master
         with:
           r-version: '3.6.1'
-      	if: steps.cache-r.outputs.cache-hit != 'true'
-      	uses: r-lib/actions/setup-r@master
+      - name: Cache linux dependencies
+        id: cache-linux
+        uses: actions/cache@v1
+        with:
+          path: linux
+          key: ${{ runner.os }}-linux
+      - name: Install linux dependencies
+      	if: steps.cache-linux.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install libxml2-dev libssl-dev libcurl4-openssl-dev libudunits2-dev libopenblas-base
       - run: |
           if [[ $(dpkg -l | grep -E '^ii' | grep r-3.6.1) ]]; then
            echo "there are files"
@@ -27,6 +30,3 @@ jobs:
           fi
       - run: |
           Rscript -e ".libPaths()"
-
-
-
