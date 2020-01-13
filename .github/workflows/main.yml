@@ -8,10 +8,25 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - uses: r-lib/actions/setup-r@master
+      - name: Cache r
+        id: cache-r
+        uses: actions/cache@v1
+        with:
+          path: r
+          key: ${{ runner.os }}-r
+      - name: Set up R
         with:
           r-version: '3.6.1'
+      	if: steps.cache-r.outputs.cache-hit != 'true'
+      	uses: r-lib/actions/setup-r@master
       - run: |
-          dpkg -l | grep -E '^ii' | grep R
+          if [[ $(dpkg -l | grep -E '^ii' | grep r-3.6.1) ]]; then
+           echo "there are files"
+          else
+           echo "no files found"
+          fi
       - run: |
           Rscript -e ".libPaths()"
+
+
+
