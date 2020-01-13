@@ -25,3 +25,11 @@ jobs:
       	if: steps.cache-rp.outputs.cache-hit != 'true'
         run: |
           Rscript -e "install.packages('devtools')"
+      - run: |
+          if [[ $(dpkg -l | grep -E '^ii' | grep r-3.6.1) ]]; then
+           echo "there are files"
+          else
+           echo "no files found"
+          fi
+      - run: |
+          Rscript -e ".libPaths()"
