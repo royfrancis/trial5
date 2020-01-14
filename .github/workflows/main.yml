@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: "/home/runner/work/_temp/Library"
-          key: ${{ runner.os }}-cache-rp-$(ls /home/runner/work/_temp/Library/ | cut -c1-1 | paste -sd "")
+          key: ${{ runner.os }}-cache-rp-$(ls /home/runner/work/_temp/Library/ | sha256sum)
       - name: Install R dependencies
         if: steps.cache-rp.outputs.cache-hit != 'true'
         run: |
@@ -50,12 +50,14 @@ jobs:
           git config --global user.email "do_not_email@example.com"
           git config --global user.name "gh_action"
 
+          # Render website
           Rscript -e "rmarkdown::render_site()"
           echo "Folder contents at $(pwd):"
           ls -lh
           echo "Folder contents at ${path_repo}/${path_export}:"
           ls -lh ${path_repo}/${path_export}
 
+          # Clone gh-pages branch
           git clone --single-branch --branch gh-pages "https://${GITHUB_ACTOR}:${{ secrets.TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" tmprepo
           cd tmprepo
           if [ -d $path_export ]; then
@@ -69,18 +71,22 @@ jobs:
           echo "Folder contents at $(pwd):"
           ls -lh
 
+          # Create index file
           printf "All current and previous workshop materials are listed below.\n\n" > index.md
           printf "<p class='index'>\n" >> index.md
           months=(Zero Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
           dirs=$(ls -d */ | sed 's/\///' | tac)
           for i in $dirs
           do
-          printf "* [20${i:0:2}-${months[${i:(-3)}]}](https://${GITHUB_ACTOR}.github.io/${repo}/${i})\n" >> index.md
+           ##printf "* [20${i:0:2}-${months[${i:(-3)}]}](https://${GITHUB_ACTOR}.github.io/${repo}/${i})\n" >> index.md
+           printf "<a href='https://${GITHUB_ACTOR}.github.io/${repo}/${i}/'>$20${i:0:2}-${months[${i:(-3)}]}</a>\n" >> index.md
           done
           printf "</p>\n" >> index.md
 
           echo "Folder contents at $(pwd):"
           ls -lh
+
+          # Push changes back
           git add .
           git commit -m "Updated contents at $(date +%Y%m%d-%H%M%S)"
           git push origin
