@@ -73,15 +73,15 @@ jobs:
 
           # Create index file
           printf "All current and previous workshop materials are listed below.\n\n" > index.md
-          printf "<p class='index'>\n" >> index.md
+          printf "<div style='white-space:pre-wrap;display:block;'><p class='index'>\n" >> index.md
           months=(Zero Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
           dirs=$(ls -d */ | sed 's/\///' | tac)
           for i in $dirs
           do
-           ##printf "* [20${i:0:2}-${months[${i:(-3)}]}](https://${GITHUB_ACTOR}.github.io/${repo}/${i})\n" >> index.md
-           printf "<a href='https://${GITHUB_ACTOR}.github.io/${repo}/${i}/'>$20${i:0:2}-${months[${i:(-3)}]}</a>\n" >> index.md
+           ##printf "* [20${i:0:2} ${months[${i:(-3)}]}](https://${GITHUB_ACTOR}.github.io/${repo}/${i})\n" >> index.md
+           printf "<span style='display:block;'><a href='https://${GITHUB_ACTOR}.github.io/${repo}/${i}/'>$20${i:0:2}-${months[${i:(-3)}]}</a></span>" >> index.md
           done
-          printf "</p>\n" >> index.md
+          printf "</p></div>" >> index.md
 
           echo "Folder contents at $(pwd):"
           ls -lh
